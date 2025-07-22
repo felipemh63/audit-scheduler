@@ -42,21 +42,18 @@ public class ServiceController {
         return responseDto;
     }
 
-    // Conversión de entidad Service a ServiceDTO
+    // Conversión de entidad Service a ServiceDTO (stream directo, sin copia defensiva)
     private ServiceDTO toDTO(Service service) {
         ServiceDTO dto = new ServiceDTO();
         dto.setId(service.getId());
         dto.setName(service.getName());
         dto.setDescription(service.getDescription());
-        // Evita NPE si auditorServices es null
-        if (service.getAuditorServices() != null) {
-            List<AuditorServiceDTO> services = service.getAuditorServices().stream()
+        List<AuditorServiceDTO> services = service.getAuditorServices() == null
+                ? Collections.emptyList()
+                : service.getAuditorServices().stream()
                     .map(this::toAuditorServiceDTO)
                     .collect(Collectors.toList());
-            dto.setAuditorServices(services);
-        } else {
-            dto.setAuditorServices(Collections.emptyList());
-        }
+        dto.setAuditorServices(services);
         return dto;
     }
 
@@ -71,4 +68,3 @@ public class ServiceController {
         return dto;
     }
 }
-

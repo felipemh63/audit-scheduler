@@ -1,9 +1,0 @@
-com\audittrack\auditscheduler\AuditSchedulerApplication.class
-com\audittrack\auditscheduler\controller\AuditorController.class
-com\audittrack\auditscheduler\repository\AuditRepository.class
-com\audittrack\auditscheduler\controller\AuditController.class
-com\audittrack\auditscheduler\entity\Audit.class
-com\audittrack\auditscheduler\entity\Auditor.class
-com\audittrack\auditscheduler\repository\AuditorRepository.class
-com\audittrack\auditscheduler\entity\Audit$Status.class
-com\audittrack\auditscheduler\entity\Auditor$RateType.class

@@ -43,21 +43,23 @@ public class AuditorController {
         return responseDto;
     }
 
-    // Conversión de Auditor a DTO
+    // Conversión de Auditor a AuditorDTO (stream directo, sin copia defensiva)
     private AuditorDTO toDTO(Auditor auditor) {
         AuditorDTO dto = new AuditorDTO();
         dto.setId(auditor.getId());
         dto.setName(auditor.getName());
         dto.setEmail(auditor.getEmail());
         dto.setPhone(auditor.getPhone());
-        List<AuditorServiceDTO> services = auditor.getAuditorServices().stream()
-                .map(this::toAuditorServiceDTO)
-                .collect(Collectors.toList());
+        List<AuditorServiceDTO> services = auditor.getAuditorServices() == null
+                ? Collections.emptyList()
+                : auditor.getAuditorServices().stream()
+                    .map(this::toAuditorServiceDTO)
+                    .collect(Collectors.toList());
         dto.setAuditorServices(services);
         return dto;
     }
 
-    // Conversión de AuditorService a DTO
+    // Conversión de AuditorService a AuditorServiceDTO
     private AuditorServiceDTO toAuditorServiceDTO(AuditorService as) {
         AuditorServiceDTO dto = new AuditorServiceDTO();
         dto.setId(as.getId());
