@@ -1,17 +1,16 @@
 package com.audittrack.auditscheduler.controller;
 
-import com.audittrack.auditscheduler.dto.AuditorServiceDTO;
+import com.audittrack.auditscheduler.entity.AuditorService;
 import com.audittrack.auditscheduler.entity.Auditor;
 import com.audittrack.auditscheduler.entity.Service;
-import com.audittrack.auditscheduler.entity.AuditorService;
+import com.audittrack.auditscheduler.repository.AuditorServiceRepository;
 import com.audittrack.auditscheduler.repository.AuditorRepository;
 import com.audittrack.auditscheduler.repository.ServiceRepository;
-import com.audittrack.auditscheduler.repository.AuditorServiceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auditor-services")
@@ -22,37 +21,59 @@ public class AuditorServiceController {
     private final AuditorRepository auditorRepository;
     private final ServiceRepository serviceRepository;
 
+    // Listar todos
     @GetMapping
-    public List<AuditorServiceDTO> getAll() {
-        return auditorServiceRepository.findAll().stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+    public List<AuditorService> getAll() {
+        return auditorServiceRepository.findAll();
     }
 
-    @PostMapping
-    public AuditorServiceDTO create(@RequestBody AuditorServiceDTO dto) {
-        Auditor auditor = auditorRepository.findById(dto.getAuditorId())
-                .orElseThrow(() -> new RuntimeException("Auditor not found"));
-        Service service = serviceRepository.findById(dto.getServiceId())
-                .orElseThrow(() -> new RuntimeException("Service not found"));
+    // Listar por auditorId
+    @GetMapping("/by-auditor/{auditorId}")
+    public List<AuditorService> getByAuditor(@PathVariable Long auditorId) {
+        return auditorServiceRepository.findByAuditor_Id(auditorId);
+    }
 
-        AuditorService auditorService = new AuditorService();
+    // Listar por serviceId
+    @GetMapping("/by-service/{serviceId}")
+    public List<AuditorService> getByService(@PathVariable Long serviceId) {
+        return auditorServiceRepository.findByService_Id(serviceId);
+    }
+
+    // Crear relación
+    @PostMapping
+    public ResponseEntity<AuditorService> create(@RequestBody AuditorService auditorService) {
+        Auditor auditor = auditorRepository.findById(auditorService.getAuditor().getId())
+            .orElseThrow(() -> new RuntimeException("Auditor not found"));
+        Service service = serviceRepository.findById(auditorService.getService().getId())
+            .orElseThrow(() -> new RuntimeException("Service not found"));
         auditorService.setAuditor(auditor);
         auditorService.setService(service);
-        auditorService.setRate(dto.getRate());
-        auditorService.setRateType(dto.getRateType());
-
-        auditorService = auditorServiceRepository.save(auditorService);
-        return toDTO(auditorService);
+        return ResponseEntity.ok(auditorServiceRepository.save(auditorService));
     }
 
-    private AuditorServiceDTO toDTO(AuditorService as) {
-        AuditorServiceDTO dto = new AuditorServiceDTO();
-        dto.setId(as.getId());
-        dto.setRate(as.getRate());
-        dto.setRateType(as.getRateType());
-        dto.setAuditorId(as.getAuditor().getId());
-        dto.setServiceId(as.getService().getId());
-        return dto;
+    // Actualizar
+    @PutMapping("/{id}")
+    public ResponseEntity<AuditorService> update(@PathVariable Long id, @RequestBody AuditorService auditorService) {
+        return auditorServiceRepository.findById(id)
+            .map(existing -> {
+                existing.setRate(auditorService.getRate());
+                existing.setRateType(auditorService.getRateType());
+                existing.setAuditor(auditorRepository.findById(auditorService.getAuditor().getId())
+                        .orElseThrow(() -> new RuntimeException("Auditor not found")));
+                existing.setService(serviceRepository.findById(auditorService.getService().getId())
+                        .orElseThrow(() -> new RuntimeException("Service not found")));
+                return ResponseEntity.ok(auditorServiceRepository.save(existing));
+            }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // Borrar relación
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (auditorServiceRepository.existsById(id)) {
+            auditorServiceRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

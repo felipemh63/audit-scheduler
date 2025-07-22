@@ -1,26 +1,35 @@
 package com.audittrack.auditscheduler.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
 @Data
 public class AuditorService {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auditor_id")
-    @JsonBackReference(value = "auditor-auditorService")
+    @ManyToOne
     private Auditor auditor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id")
-    @JsonBackReference(value = "service-auditorService")
+    @ManyToOne
     private Service service;
 
     private Double rate;
     private String rateType;
+
+    // equals y hashCode SOLO por id
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AuditorService)) return false;
+        AuditorService other = (AuditorService) o;
+        return id != null && id.equals(other.id);
+    }
+    @Override
+    public int hashCode() {
+        return 31;
+    }
 }

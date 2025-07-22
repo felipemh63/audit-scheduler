@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,23 +45,23 @@ public class AuditorController {
         return responseDto;
     }
 
-    // Conversión de Auditor a AuditorDTO (stream directo, sin copia defensiva)
+    // Conversión de Auditor a AuditorDTO (copia defensiva para evitar errores de concurrencia)
     private AuditorDTO toDTO(Auditor auditor) {
         AuditorDTO dto = new AuditorDTO();
         dto.setId(auditor.getId());
         dto.setName(auditor.getName());
         dto.setEmail(auditor.getEmail());
         dto.setPhone(auditor.getPhone());
-        List<AuditorServiceDTO> services = auditor.getAuditorServices() == null
-                ? Collections.emptyList()
-                : auditor.getAuditorServices().stream()
-                    .map(this::toAuditorServiceDTO)
-                    .collect(Collectors.toList());
+        Set<AuditorService> auditorServiceSet = auditor.getAuditorServices() != null
+                ? new HashSet<>(auditor.getAuditorServices())
+                : new HashSet<>();
+        List<AuditorServiceDTO> services = auditorServiceSet.stream()
+                .map(this::toAuditorServiceDTO)
+                .collect(Collectors.toList());
         dto.setAuditorServices(services);
         return dto;
     }
 
-    // Conversión de AuditorService a AuditorServiceDTO
     private AuditorServiceDTO toAuditorServiceDTO(AuditorService as) {
         AuditorServiceDTO dto = new AuditorServiceDTO();
         dto.setId(as.getId());
