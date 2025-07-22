@@ -1,52 +1,52 @@
 package com.audittrack.auditscheduler.controller;
 
+import com.audittrack.auditscheduler.dto.AuditorDTO;
+import com.audittrack.auditscheduler.dto.AuditorServiceDTO;
 import com.audittrack.auditscheduler.entity.Auditor;
+import com.audittrack.auditscheduler.entity.AuditorService;
 import com.audittrack.auditscheduler.repository.AuditorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auditors")
+@RequiredArgsConstructor
 public class AuditorController {
 
-    @Autowired
-    private AuditorRepository auditorRepository;
+    private final AuditorRepository auditorRepository;
 
-    // Listar todos los auditores
     @GetMapping
-    public List<Auditor> getAllAuditors() {
-        return auditorRepository.findAll();
+    public List<AuditorDTO> getAllAuditors() {
+        return auditorRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
-    // Obtener auditor por ID
-    @GetMapping("/{id}")
-    public Auditor getAuditorById(@PathVariable Long id) {
-        return auditorRepository.findById(id).orElse(null);
+    // Conversión de Auditor a DTO
+    private AuditorDTO toDTO(Auditor auditor) {
+        AuditorDTO dto = new AuditorDTO();
+        dto.setId(auditor.getId());
+        dto.setName(auditor.getName());
+        dto.setEmail(auditor.getEmail());
+        dto.setPhone(auditor.getPhone());
+        List<AuditorServiceDTO> services = auditor.getAuditorServices().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+        dto.setAuditorServices(services);
+        return dto;
     }
 
-    // Crear auditor
-    @PostMapping
-    public Auditor createAuditor(@RequestBody Auditor auditor) {
-        return auditorRepository.save(auditor);
-    }
-
-    // Actualizar auditor
-    @PutMapping("/{id}")
-    public Auditor updateAuditor(@PathVariable Long id, @RequestBody Auditor details) {
-        return auditorRepository.findById(id).map(auditor -> {
-            auditor.setName(details.getName());
-            auditor.setEmail(details.getEmail());
-            auditor.setPhone(details.getPhone());
-            // Otros campos según tu entidad
-            return auditorRepository.save(auditor);
-        }).orElse(null);
-    }
-
-    // Eliminar auditor
-    @DeleteMapping("/{id}")
-    public void deleteAuditor(@PathVariable Long id) {
-        auditorRepository.deleteById(id);
+    // Conversión de AuditorService a DTO
+    private AuditorServiceDTO toDTO(AuditorService as) {
+        AuditorServiceDTO dto = new AuditorServiceDTO();
+        dto.setId(as.getId());
+        dto.setRate(as.getRate());
+        dto.setRateType(as.getRateType());
+        dto.setAuditorId(as.getAuditor().getId());
+        dto.setServiceId(as.getService().getId());
+        return dto;
     }
 }

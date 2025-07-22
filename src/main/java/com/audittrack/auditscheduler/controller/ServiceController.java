@@ -1,26 +1,74 @@
 package com.audittrack.auditscheduler.controller;
 
+import com.audittrack.auditscheduler.dto.ServiceDTO;
+import com.audittrack.auditscheduler.dto.AuditorServiceDTO;
 import com.audittrack.auditscheduler.entity.Service;
+import com.audittrack.auditscheduler.entity.AuditorService;
 import com.audittrack.auditscheduler.repository.ServiceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/services")
+@RequiredArgsConstructor
 public class ServiceController {
 
-    @Autowired
-    private ServiceRepository serviceRepository;
-
-    @PostMapping
-    public Service create(@RequestBody Service service) {
-        return serviceRepository.save(service);
-    }
+    private final ServiceRepository serviceRepository;
 
     @GetMapping
-    public List<Service> getAll() {
-        return serviceRepository.findAll();
+    public List<ServiceDTO> getAllServices() {
+        return serviceRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @PostMapping
+    public ServiceDTO createService(@RequestBody ServiceDTO dto) {
+        Service service = new Service();
+        service.setName(dto.getName());
+        service.setDescription(dto.getDescription());
+
+        service = serviceRepository.save(service);
+
+        ServiceDTO responseDto = new ServiceDTO();
+        responseDto.setId(service.getId());
+        responseDto.setName(service.getName());
+        responseDto.setDescription(service.getDescription());
+        responseDto.setAuditorServices(Collections.emptyList());
+        return responseDto;
+    }
+
+    // Conversión de entidad Service a ServiceDTO
+    private ServiceDTO toDTO(Service service) {
+        ServiceDTO dto = new ServiceDTO();
+        dto.setId(service.getId());
+        dto.setName(service.getName());
+        dto.setDescription(service.getDescription());
+        // Evita NPE si auditorServices es null
+        if (service.getAuditorServices() != null) {
+            List<AuditorServiceDTO> services = service.getAuditorServices().stream()
+                    .map(this::toAuditorServiceDTO)
+                    .collect(Collectors.toList());
+            dto.setAuditorServices(services);
+        } else {
+            dto.setAuditorServices(Collections.emptyList());
+        }
+        return dto;
+    }
+
+    // Conversión de entidad AuditorService a AuditorServiceDTO
+    private AuditorServiceDTO toAuditorServiceDTO(AuditorService as) {
+        AuditorServiceDTO dto = new AuditorServiceDTO();
+        dto.setId(as.getId());
+        dto.setRate(as.getRate());
+        dto.setRateType(as.getRateType());
+        dto.setAuditorId(as.getAuditor().getId());
+        dto.setServiceId(as.getService().getId());
+        return dto;
     }
 }
+
