@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auditor-services")
@@ -20,35 +19,33 @@ public class AuditorServiceController {
         return auditorServiceRepository.findAll();
     }
 
-    @GetMapping("/{id}")
-    public AuditorService getById(@PathVariable Long id) {
-        return auditorServiceRepository.findById(id).orElse(null);
+    @GetMapping("/auditor/{auditorId}")
+    public List<AuditorService> getByAuditor(@PathVariable Long auditorId) {
+        return auditorServiceRepository.findByAuditor_Id(auditorId);
+    }
+
+    @GetMapping("/service/{serviceId}")
+    public List<AuditorService> getByService(@PathVariable Long serviceId) {
+        return auditorServiceRepository.findByService_Id(serviceId);
     }
 
     @PostMapping
     public AuditorService create(@RequestBody AuditorService auditorService) {
-        // Valor por defecto para rateType
-        if (auditorService.getRateType() == null || auditorService.getRateType().isEmpty()) {
+        // Si no envían rateType, lo dejas null o puedes poner por defecto USD
+        if (auditorService.getRateType() == null) {
             auditorService.setRateType("USD");
         }
         return auditorServiceRepository.save(auditorService);
     }
 
     @PutMapping("/{id}")
-    public AuditorService update(@PathVariable Long id, @RequestBody AuditorService details) {
-        Optional<AuditorService> optional = auditorServiceRepository.findById(id);
-        if (optional.isEmpty()) return null;
-        AuditorService entity = optional.get();
-
-        entity.setRate(details.getRate());
-        entity.setRateType(
-            details.getRateType() == null || details.getRateType().isEmpty() ? "USD" : details.getRateType()
-        );
-        // Si quieres permitir cambiar el auditor o el servicio también, descomenta:
-        // entity.setAuditor(details.getAuditor());
-        // entity.setService(details.getService());
-
-        return auditorServiceRepository.save(entity);
+    public AuditorService update(@PathVariable Long id, @RequestBody AuditorService auditorService) {
+        return auditorServiceRepository.findById(id).map(existing -> {
+            existing.setRate(auditorService.getRate());
+            existing.setRateType(auditorService.getRateType());
+            // Puedes actualizar auditor y service solo si lo necesitas, normalmente NO.
+            return auditorServiceRepository.save(existing);
+        }).orElse(null);
     }
 
     @DeleteMapping("/{id}")
