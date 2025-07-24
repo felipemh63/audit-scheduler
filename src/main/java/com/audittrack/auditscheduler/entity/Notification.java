@@ -18,4 +18,8 @@ public class Notification {
     private String channel; // EMAIL, WHATSAPP
     private boolean sent;
     private LocalDateTime timestamp;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auditor_id")
+    private Auditor auditor;
 }

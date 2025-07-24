@@ -1,16 +1,14 @@
 package com.audittrack.auditscheduler.dto;
 
-import com.audittrack.auditscheduler.entity.Audit;
 import lombok.Data;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
-public class AuditDto {
+public class ActivityDto {
     private Long id;
+    private String title;
+    private String description;
     private LocalDateTime start;
     private LocalDateTime end;
-    private Double cost;
-    private String status;
     private Long auditorId;
-    private Long serviceId;
 }

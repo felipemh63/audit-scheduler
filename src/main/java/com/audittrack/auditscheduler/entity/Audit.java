@@ -1,7 +1,8 @@
- package com.audittrack.auditscheduler.entity;
+package com.audittrack.auditscheduler.entity;
+
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -10,25 +11,18 @@ public class Audit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDate auditDate;
-    private Integer durationDays;
+    private LocalDateTime start; // Fecha/hora inicio
+    private LocalDateTime end;   // Fecha/hora fin
     private Double cost;
+    private String status;
 
-    @Enumerated(EnumType.STRING)
-    private Status status;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "auditor_id")
     private Auditor auditor;
-    
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id")
     private Service service;
-
-    public enum Status {
-        SCHEDULED,
-        COMPLETED,
-        CANCELLED
-    }
 }
 
+ 

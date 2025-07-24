@@ -28,4 +28,7 @@ public class Report {
     private Service service;
 
     private String generatedBy; // Usuario que genera el informe
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "audit_id")
+    private Audit audit;
 }
